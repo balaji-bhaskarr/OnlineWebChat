@@ -2,6 +2,7 @@ from flask import Flask, render_template, session, redirect, request, url_for
 from flask_socketio import SocketIO, send, join_room, leave_room
 import random
 from string import ascii_uppercase
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'webchat2023'
@@ -64,6 +65,7 @@ def message(data):
     content = {
         'name' : session.get('name'),
         'message' : data['data'],
+        'date' : data['date']
     }
     send(content, to=room)
     rooms[room]['messages'].append(content)
@@ -79,7 +81,7 @@ def connect(auth):
         leave_room(room)
         return
     join_room(room)
-    send({'name':name, 'message':'has joined the room'}, to=room)
+    send({'name':name, 'message':'has joined the room', 'date': str(datetime.now())}, to=room)
     rooms[room]['members']+=1
     print(f'{name} joined the room {room}')
 
@@ -93,7 +95,7 @@ def disconnect():
         rooms[room]['members'] -= 1
         if rooms[room]['members']<=0:
             del rooms[room]
-    send({'name':name, 'message':'has left the room'}, to=room)
+    send({'name':name, 'message':'has left the room', 'date': str(datetime.now())}, to=room)
     print(f'{name} left the room {room}')
 if __name__=='__main__':
     socketio.run(app, debug=True)
